@@ -47,7 +47,8 @@ namespace NeonStream
                 //Console.WriteLine($"Found a {wpn.Name}!");
                 if (temp == 0)
                 {
-                    wep1label.Text = ("Weapon");
+                    var wep1text = wpn.Name;
+                    wep1label.Text = wep1text;
                 }
                 if (temp == 1)
                 {
@@ -59,6 +60,7 @@ namespace NeonStream
                 }
             }
             temp = 0;
+            var mem = new MemoryKernelReader(ff7);
 
         }
     }
