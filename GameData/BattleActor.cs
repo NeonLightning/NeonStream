@@ -1,4 +1,5 @@
 ﻿using NeonStream.Models;
+using NeonStream.GameData;
 
 namespace NeonStream.GameData
 {

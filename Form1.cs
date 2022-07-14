@@ -4,6 +4,7 @@ using Shojy.FF7.Elena;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using NeonStream.Constants;
+using NeonStream.GameData;
 
 namespace NeonStream
 {

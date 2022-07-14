@@ -1,6 +1,7 @@
 ﻿using System;
 using NeonStream.Constants;
 using NeonStream.Models;
+using NeonStream.GameData;
 
 namespace NeonStream.GameData
 {
