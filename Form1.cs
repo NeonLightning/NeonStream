@@ -5,15 +5,23 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using NeonStream.Constants;
 using NeonStream.GameData;
+using Accessory = NeonStream.Models.Accessory;
+using Character = NeonStream.GameData.Character;
+using Timer = System.Timers.Timer;
+using Weapon = NeonStream.Models.Weapon;
 
 namespace NeonStream
 {
     public partial class Form1 : Form
     {
+        #region Public Properties
         private static Process FF7 { get; set; }
         private static NativeMemoryReader MemoryReader { get; set; }
         private static FF7SaveMap SaveMap { get; set; }
         public static FF7BattleMap BattleMap { get; set; }
+        private static Timer Timer { get; set; }
+
+        #endregion Public Properties
 
         public Form1()
         {
