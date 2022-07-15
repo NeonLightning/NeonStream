@@ -11,6 +11,7 @@ using Timer = System.Timers.Timer;
 using Weapon = NeonStream.Models.Weapon;
 using System.Timers;
 using NeonStream.Models;
+using System;
 
 namespace NeonStream
 {
@@ -72,6 +73,7 @@ namespace NeonStream
                     Face = GetFaceForCharacter(chars[index]),
                     BackRow = !chars[index].AtFront,
                 };
+
 
                 for (var m = 0; m < chars[index].WeaponMateria.Length; ++m)
                 {
@@ -204,6 +206,11 @@ namespace NeonStream
             SaveMap.WindowColorBottomLeft = $"{colors[0x6]:X2}{colors[0x5]:X2}{colors[0x4]:X2}";
             SaveMap.WindowColorTopRight = $"{colors[0xA]:X2}{colors[0x9]:X2}{colors[0x8]:X2}";
             SaveMap.WindowColorBottomRight = $"{colors[0xE]:X2}{colors[0xD]:X2}{colors[0xC]:X2}";
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
