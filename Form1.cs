@@ -1,17 +1,16 @@
 using Bluegrams.Application;
-using Shojy.FF7.Elena.Converters;
-using Shojy.FF7.Elena;
-using System.Diagnostics;
-using System.Drawing.Imaging;
 using NeonStream.Constants;
 using NeonStream.GameData;
+using NeonStream.Models;
+using Shojy.FF7.Elena;
+using System.Diagnostics;
+using System.Drawing.Drawing2D;
+using System.Timers;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Accessory = NeonStream.Models.Accessory;
 using Character = NeonStream.GameData.Character;
 using Timer = System.Timers.Timer;
 using Weapon = NeonStream.Models.Weapon;
-using System.Timers;
-using NeonStream.Models;
-using System;
 
 namespace NeonStream
 {
@@ -28,6 +27,7 @@ namespace NeonStream
         public static List<Weapon> WeaponDatabase { get; set; } = new List<Weapon>();
         public static List<Accessory> AccessoryDatabase { get; set; } = new List<Accessory>();
         public static List<Armlet> ArmletDatabase { get; set; } = new List<Armlet>();
+
 
         #endregion Public Properties
         public static GameStatus ExtractStatusFromMap(FF7SaveMap map, FF7BattleMap battleMap)
@@ -179,7 +179,6 @@ namespace NeonStream
                 SaveMap.WindowColorBottomLeft = $"{colors[0x6]:X2}{colors[0x5]:X2}{colors[0x4]:X2}";
                 SaveMap.WindowColorTopRight = $"{colors[0xA]:X2}{colors[0x9]:X2}{colors[0x8]:X2}";
                 SaveMap.WindowColorBottomRight = $"{colors[0xE]:X2}{colors[0xD]:X2}{colors[0xC]:X2}";
-
                 PartyStatus = ExtractStatusFromMap(SaveMap, BattleMap);
             }
             catch (Exception ex)
@@ -187,26 +186,26 @@ namespace NeonStream
                 MessageBox.Show("done b0rk3d");
             }
         }
+
         public Form1()
         {
             InitializeComponent();
             PortableSettingsProvider.ApplyProvider(Properties.Settings.Default);
-            Starting.Text = ("starting...");
             if (FF7 is null) FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
             if (FF7 is null) FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
-            MemoryReader = new NativeMemoryReader(FF7);
-            var saveMapByteData = MemoryReader.ReadMemory(new IntPtr(Addresses.SaveMapStart), 4342);
-            var isBattle = MemoryReader.ReadMemory(new IntPtr(Addresses.ActiveBattleState), 1).First();
-            var battleMapByteData = MemoryReader.ReadMemory(new IntPtr(Addresses.BattleMapStart), 0x750);
-            var colors = MemoryReader.ReadMemory(new IntPtr(Addresses.WindowColorBlockStart), 16);
-            SaveMap = new FF7SaveMap(saveMapByteData);
-            BattleMap = new FF7BattleMap(battleMapByteData, isBattle);
+            StartMonitoringGame();
+            int mainloop = 0;
+            while ( mainloop == 1)
+            {
+                GameStatus game = ExtractStatusFromMap(SaveMap, BattleMap);
+                NameOutputlabel1.Text = game.Party[0].Name;
+            }
 
-            SaveMap.WindowColorTopLeft = $"{colors[0x2]:X2}{colors[0x1]:X2}{colors[0x0]:X2}";
-            SaveMap.WindowColorBottomLeft = $"{colors[0x6]:X2}{colors[0x5]:X2}{colors[0x4]:X2}";
-            SaveMap.WindowColorTopRight = $"{colors[0xA]:X2}{colors[0x9]:X2}{colors[0x8]:X2}";
-            SaveMap.WindowColorBottomRight = $"{colors[0xE]:X2}{colors[0xD]:X2}{colors[0xC]:X2}";
+            FF7?.Dispose();
+
+
         }
+
 
         private void button2_Click(object sender, EventArgs e)
         {
