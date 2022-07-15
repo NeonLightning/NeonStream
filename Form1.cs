@@ -174,6 +174,33 @@ namespace NeonStream
             }
         }
 
+
+        public Form1()
+        {
+            InitializeComponent();
+            PortableSettingsProvider.ApplyProvider(Properties.Settings.Default);
+            if (FF7 is null)
+            {
+                FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
+            }
+
+            if (FF7 is null)
+            {
+                FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
+            }
+
+            StartMonitoringGame();
+            int mainloop = 1;
+            while (mainloop == 1)
+            {
+                GameStatus game = ExtractStatusFromMap(SaveMap, BattleMap);
+                NameOutputlabel1.Text = game.Party[0].Name;
+            }
+
+            FF7?.Dispose();
+
+
+        }
         private static void StartMonitoringGame()
         {
             if (Timer is null)
@@ -208,33 +235,6 @@ namespace NeonStream
             {
                 SearchForProcess(ProcessName);
             }
-        }
-
-        public Form1()
-        {
-            InitializeComponent();
-            PortableSettingsProvider.ApplyProvider(Properties.Settings.Default);
-            if (FF7 is null)
-            {
-                FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
-            }
-
-            if (FF7 is null)
-            {
-                FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
-            }
-
-            StartMonitoringGame();
-            int mainloop = 1;
-            while (mainloop == 1)
-            {
-                GameStatus game = ExtractStatusFromMap(SaveMap, BattleMap);
-                NameOutputlabel1.Text = game.Party[0].Name;
-            }
-
-            FF7?.Dispose();
-
-
         }
 
     }
