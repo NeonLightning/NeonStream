@@ -161,7 +161,6 @@ namespace NeonStream
             }
             catch (Exception)
             {
-                _ = MessageBox.Show("done b0rk3d");
             }
         }
 
@@ -180,7 +179,7 @@ namespace NeonStream
             }
 
             StartMonitoringGame();
-            int mainloop = 0;
+            int mainloop = 1;
             while (mainloop == 1)
             {
                 GameStatus game = ExtractStatusFromMap(SaveMap, BattleMap);
