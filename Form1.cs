@@ -16,6 +16,7 @@ namespace NeonStream
     {
         #region Public Properties
         private static Process FF7 { get; set; }
+        private static string ProcessName { get; set; }
         private static NativeMemoryReader MemoryReader { get; set; }
         private static FF7SaveMap SaveMap { get; set; }
         public static FF7BattleMap BattleMap { get; set; }
@@ -128,6 +129,50 @@ namespace NeonStream
                 _ => "",
             };
         }
+        private static void SearchForProcess(string processName)
+        {
+            Console.WriteLine("Searching...");
+            if (Timer is null)
+            {
+                Timer = new Timer(300);
+                Timer.Elapsed += Timer_Elapsed;
+                Timer.AutoReset = true;
+
+                Timer_Elapsed(null, null);
+                Timer.Start();
+            }
+            lock (Timer)
+            {
+                if (null != Timer)
+                {
+                    Timer.Enabled = false;
+                }
+
+                FF7 = null;
+                while (FF7 is null)
+                {
+                    try
+                    {
+                        if (FF7 is null) FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
+                        if (FF7 is null) FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
+                        if (FF7 is null && !string.IsNullOrWhiteSpace(processName))
+                            FF7 = Process.GetProcessesByName(processName).FirstOrDefault();
+                    }
+                    catch (Exception e)
+                    {
+                    }
+
+                    Thread.Sleep(250);
+                }
+
+                MemoryReader = new NativeMemoryReader(FF7);
+                Console.WriteLine("Found FF7");
+                if (null != Timer)
+                {
+                    Timer.Enabled = true;
+                }
+            }
+        }
 
         private static void StartMonitoringGame()
         {
@@ -159,8 +204,9 @@ namespace NeonStream
                 SaveMap.WindowColorBottomRight = $"{colors[0xE]:X2}{colors[0xD]:X2}{colors[0xC]:X2}";
                 PartyStatus = ExtractStatusFromMap(SaveMap, BattleMap);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                SearchForProcess(ProcessName);
             }
         }
 
