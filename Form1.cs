@@ -4,9 +4,7 @@ using NeonStream.GameData;
 using NeonStream.Models;
 using Shojy.FF7.Elena;
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
 using System.Timers;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Accessory = NeonStream.Models.Accessory;
 using Character = NeonStream.GameData.Character;
 using Timer = System.Timers.Timer;
@@ -32,11 +30,11 @@ namespace NeonStream
         #endregion Public Properties
         public static GameStatus ExtractStatusFromMap(FF7SaveMap map, FF7BattleMap battleMap)
         {
-            var time = map.LiveTotalSeconds;
+            int time = map.LiveTotalSeconds;
 
-            var t = $"{(time / 3600):00}:{((time % 3600) / 60):00}:{(time % 60):00}";
+            string t = $"{time / 3600:00}:{time % 3600 / 60:00}:{time % 60:00}";
 
-            var status = new GameStatus()
+            GameStatus status = new()
             {
                 Gil = map.LiveGil,
                 Location = map.LiveMapName,
@@ -48,16 +46,19 @@ namespace NeonStream
                 ColorTopRight = map.WindowColorTopRight,
                 TimeActive = t
             };
-            var party = battleMap.Party;
+            BattleActor[] party = battleMap.Party;
 
-            var chars = map.LiveParty;
+            CharacterRecord[] chars = map.LiveParty;
 
-            for (var index = 0; index < chars.Length; ++index)
+            for (int index = 0; index < chars.Length; ++index)
             {
                 // Skip empty party
-                if (chars[index].Id == 0xFF) continue;
+                if (chars[index].Id == 0xFF)
+                {
+                    continue;
+                }
 
-                var chr = new Models.Character()
+                Models.Character chr = new()
                 {
                     MaxHp = chars[index].MaxHp,
                     MaxMp = chars[index].MaxMp,
@@ -75,16 +76,16 @@ namespace NeonStream
                 };
 
 
-                for (var m = 0; m < chars[index].WeaponMateria.Length; ++m)
+                for (int m = 0; m < chars[index].WeaponMateria.Length; ++m)
                 {
                     chr.WeaponMateria[m] = MateriaDatabase.FirstOrDefault(x => x.Id == chars[index].WeaponMateria[m]);
                 }
-                for (var m = 0; m < chars[index].ArmorMateria.Length; ++m)
+                for (int m = 0; m < chars[index].ArmorMateria.Length; ++m)
                 {
                     chr.ArmletMateria[m] = MateriaDatabase.FirstOrDefault(x => x.Id == chars[index].ArmorMateria[m]);
                 }
 
-                var effect = (StatusEffect)chars[index].Flags;
+                StatusEffect effect = (StatusEffect)chars[index].Flags;
 
                 if (battleMap.IsActiveBattle)
                 {
@@ -97,10 +98,10 @@ namespace NeonStream
                     chr.BackRow = party[index].IsBackRow;
                 }
 
-                var effs = effect.ToString()
+                List<string> effs = effect.ToString()
                     .Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
                     .ToList();
-                effs.RemoveAll(x => new[] { "None", "Death" }.Contains(x));
+                _ = effs.RemoveAll(x => new[] { "None", "Death" }.Contains(x));
                 chr.StatusEffects = effs.ToArray();
                 status.Party[index] = chr;
             }
@@ -111,44 +112,21 @@ namespace NeonStream
         public static string GetFaceForCharacter(CharacterRecord chr)
         {
             // TODO: Abstract magic string names behind variable set that's also used for image extraction
-            switch (chr.Character)
+            return chr.Character switch
             {
-                case Character.Cloud:
-                    return "cloud";
-
-                case Character.Barret:
-                    return "barret";
-
-                case Character.Tifa:
-                    return "tifa";
-
-                case Character.Aeris:
-                    return "aeris";
-
-                case Character.RedXIII:
-                    return "red-xiii";
-
-                case Character.Yuffie:
-                    return "yuffie";
-
-                case Character.CaitSith:
-                    return "cait-sith";
-
-                case Character.Vincent:
-                    return "vincent";
-
-                case Character.Cid:
-                    return "cid";
-
-                case Character.YoungCloud:
-                    return "young-cloud";
-
-                case Character.Sephiroth:
-                    return "sephiroth";
-
-                default:
-                    return "";
-            }
+                Character.Cloud => "cloud",
+                Character.Barret => "barret",
+                Character.Tifa => "tifa",
+                Character.Aeris => "aeris",
+                Character.RedXIII => "red-xiii",
+                Character.Yuffie => "yuffie",
+                Character.CaitSith => "cait-sith",
+                Character.Vincent => "vincent",
+                Character.Cid => "cid",
+                Character.YoungCloud => "young-cloud",
+                Character.Sephiroth => "sephiroth",
+                _ => "",
+            };
         }
 
         private static void StartMonitoringGame()
@@ -167,10 +145,10 @@ namespace NeonStream
         {
             try
             {
-                var saveMapByteData = MemoryReader.ReadMemory(new IntPtr(Addresses.SaveMapStart), 4342);
-                var isBattle = MemoryReader.ReadMemory(new IntPtr(Addresses.ActiveBattleState), 1).First();
-                var battleMapByteData = MemoryReader.ReadMemory(new IntPtr(Addresses.BattleMapStart), 0x750);
-                var colors = MemoryReader.ReadMemory(new IntPtr(Addresses.WindowColorBlockStart), 16);
+                byte[] saveMapByteData = MemoryReader.ReadMemory(new IntPtr(Addresses.SaveMapStart), 4342);
+                byte isBattle = MemoryReader.ReadMemory(new IntPtr(Addresses.ActiveBattleState), 1).First();
+                byte[] battleMapByteData = MemoryReader.ReadMemory(new IntPtr(Addresses.BattleMapStart), 0x750);
+                byte[] colors = MemoryReader.ReadMemory(new IntPtr(Addresses.WindowColorBlockStart), 16);
 
                 SaveMap = new FF7SaveMap(saveMapByteData);
                 BattleMap = new FF7BattleMap(battleMapByteData, isBattle);
@@ -181,9 +159,9 @@ namespace NeonStream
                 SaveMap.WindowColorBottomRight = $"{colors[0xE]:X2}{colors[0xD]:X2}{colors[0xC]:X2}";
                 PartyStatus = ExtractStatusFromMap(SaveMap, BattleMap);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                MessageBox.Show("done b0rk3d");
+                _ = MessageBox.Show("done b0rk3d");
             }
         }
 
@@ -191,11 +169,19 @@ namespace NeonStream
         {
             InitializeComponent();
             PortableSettingsProvider.ApplyProvider(Properties.Settings.Default);
-            if (FF7 is null) FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
-            if (FF7 is null) FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
+            if (FF7 is null)
+            {
+                FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
+            }
+
+            if (FF7 is null)
+            {
+                FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
+            }
+
             StartMonitoringGame();
             int mainloop = 0;
-            while ( mainloop == 1)
+            while (mainloop == 1)
             {
                 GameStatus game = ExtractStatusFromMap(SaveMap, BattleMap);
                 NameOutputlabel1.Text = game.Party[0].Name;
@@ -206,10 +192,5 @@ namespace NeonStream
 
         }
 
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-
-        }
     }
 }

@@ -1,8 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Tseng.lib
+namespace NeonStream.lib
 {
     public class NativeMemoryReader : IDisposable
     {
@@ -27,7 +26,7 @@ namespace Tseng.lib
         public NativeMemoryReader(Process processToRead)
         {
             TargetProcess = processToRead ?? throw new ArgumentNullException(nameof(processToRead));
-            this.Open();
+            Open();
         }
 
         #endregion Public Constructors
@@ -65,9 +64,12 @@ namespace Tseng.lib
         {
             if (TargetProcessHandle != IntPtr.Zero)
             {
-                var result = CloseHandle(TargetProcessHandle);
+                bool result = CloseHandle(TargetProcessHandle);
                 if (!result)
+                {
                     throw new ApplicationException("Unable to close process handle. The last error reported was: " + new System.ComponentModel.Win32Exception().Message);
+                }
+
                 TargetProcessHandle = IntPtr.Zero;
             }
         }
@@ -91,15 +93,22 @@ namespace Tseng.lib
         public void Open()
         {
             if (TargetProcess == null)
+            {
                 throw new ApplicationException("Process not found");
+            }
+
             if (TargetProcessHandle == IntPtr.Zero)
             {
-                TargetProcessHandle = OpenProcess(ProcessVmRead | ProcessQueryInformation, true, System.Convert.ToUInt32(TargetProcess.Id));
+                TargetProcessHandle = OpenProcess(ProcessVmRead | ProcessQueryInformation, true, Convert.ToUInt32(TargetProcess.Id));
                 if (TargetProcessHandle == IntPtr.Zero)
+                {
                     throw new ApplicationException("Unable to open process for memory reading. The last error reported was: " + new System.ComponentModel.Win32Exception().Message);
+                }
             }
             else
+            {
                 throw new ApplicationException("A handle to the process has already been obtained, " + "close the existing handle by calling the Close method before calling Open again");
+            }
         }
 
         /// <summary>
@@ -112,9 +121,12 @@ namespace Tseng.lib
         public byte[] ReadMemory(IntPtr memoryAddress, int count)
         {
             if (TargetProcessHandle == IntPtr.Zero)
-                this.Open();
-            var bytes = new byte[count + 1];
-            var result = ReadProcessMemory(TargetProcessHandle, memoryAddress, bytes, System.Convert.ToUInt32(count), 0);
+            {
+                Open();
+            }
+
+            byte[] bytes = new byte[count + 1];
+            bool result = ReadProcessMemory(TargetProcessHandle, memoryAddress, bytes, Convert.ToUInt32(count), 0);
             return result ? bytes : null;
         }
 
@@ -124,13 +136,13 @@ namespace Tseng.lib
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!this._disposedValue)
+            if (!_disposedValue)
             {
                 if (TargetProcessHandle != IntPtr.Zero)
                 {
                     try
                     {
-                        CloseHandle(TargetProcessHandle);
+                        _ = CloseHandle(TargetProcessHandle);
                     }
                     catch (Exception ex)
                     {
@@ -138,7 +150,7 @@ namespace Tseng.lib
                     }
                 }
             }
-            this._disposedValue = true;
+            _disposedValue = true;
         }
 
         #endregion Protected Methods

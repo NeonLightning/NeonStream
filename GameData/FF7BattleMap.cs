@@ -1,7 +1,5 @@
-﻿using System;
-using NeonStream.Constants;
+﻿using NeonStream.Constants;
 using NeonStream.Models;
-using NeonStream.GameData;
 
 namespace NeonStream.GameData
 {
@@ -36,12 +34,12 @@ namespace NeonStream.GameData
 
         private BattleActor[] GetActors(int start, int count)
         {
-            var acts = new BattleActor[count];
+            BattleActor[] acts = new BattleActor[count];
 
-            for (var i = 0; i < count; ++i)
+            for (int i = 0; i < count; ++i)
             {
-                var offset = start + i * BattleMapActorOffsets.ActorLength;
-                var a = new BattleActor
+                int offset = start + (i * BattleMapActorOffsets.ActorLength);
+                BattleActor a = new()
                 {
                     CurrentHp = BitConverter.ToInt32(_map, offset + BattleMapActorOffsets.CurrentHp),
                     MaxHp = BitConverter.ToInt32(_map, offset + BattleMapActorOffsets.MaxHp),

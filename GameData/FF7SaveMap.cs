@@ -1,6 +1,5 @@
-﻿using Shojy.FF7.Elena.Extensions;
-using System;
-using NeonStream.Constants;
+﻿using NeonStream.Constants;
+using Shojy.FF7.Elena.Extensions;
 
 namespace NeonStream.GameData
 {
@@ -18,7 +17,7 @@ namespace NeonStream.GameData
         {
             // Not much else to do here. Checking validity of the response won't be useful in a constructor since
             // we can't get "out" of it, though the caller of our constructor can check .IsValid
-            var valid = VerifyMapIntegrity(map);
+            bool valid = VerifyMapIntegrity(map);
 
             IsValid = valid;
             _map = !valid ? null : map;
@@ -50,7 +49,7 @@ namespace NeonStream.GameData
         {
             get
             {
-                var partyIds = new byte[3];
+                byte[] partyIds = new byte[3];
                 partyIds[0] = _map[SaveMapOffsets.PartyMember1];
                 partyIds[1] = _map[SaveMapOffsets.PartyMember2];
                 partyIds[2] = _map[SaveMapOffsets.PartyMember3];
@@ -64,7 +63,7 @@ namespace NeonStream.GameData
         {
             get
             {
-                var mapNameBytes = new byte[32];
+                byte[] mapNameBytes = new byte[32];
                 Array.Copy(_map, SaveMapOffsets.CurrentMapName, mapNameBytes, 0, 32);
                 return mapNameBytes.ToFFString();
             }
@@ -74,7 +73,7 @@ namespace NeonStream.GameData
         {
             get
             {
-                var resultArray = new CharacterRecord[3];
+                CharacterRecord[] resultArray = new CharacterRecord[3];
                 if (FillChar((Character)_map[SaveMapOffsets.PartyMember1], ref resultArray[0], _map) == false)
                 {
                     resultArray[0] = new CharacterRecord { Id = 0xFF };
@@ -106,7 +105,7 @@ namespace NeonStream.GameData
         {
             get
             {
-                var mapNameBytes = new byte[32];
+                byte[] mapNameBytes = new byte[32];
                 Array.Copy(_map, SaveMapOffsets.SavePreviewLocation, mapNameBytes, 0, 32);
                 return mapNameBytes.ToFFString();
             }
@@ -116,7 +115,7 @@ namespace NeonStream.GameData
         {
             get
             {
-                var resultArray = new CharacterRecord[3];
+                CharacterRecord[] resultArray = new CharacterRecord[3];
                 if (FillChar((Character)_map[0x5], ref resultArray[0], _map) == false)
                 {
                     return null;
@@ -146,10 +145,10 @@ namespace NeonStream.GameData
             get
             {
                 // This is stored as a 24-bit integer, so we have to pad the value out with 0s to use a 32-but conversion
-                var paddedHp = new byte[4];
+                byte[] paddedHp = new byte[4];
                 Array.Copy(_map, SaveMapOffsets.UltimateWeaponHp, paddedHp, 1, 3);
                 paddedHp[0] = 0;
-                var ultimateWeaponHp = BitConverter.ToUInt32(paddedHp, 0);
+                uint ultimateWeaponHp = BitConverter.ToUInt32(paddedHp, 0);
                 return ultimateWeaponHp;
             }
         }
@@ -171,17 +170,25 @@ namespace NeonStream.GameData
 
         public static bool VerifyMapIntegrity(byte[] map)
         {
-            var consistencyCheck = true;
+            bool consistencyCheck = true;
             try
             {
                 if (map[0x4FB] != 0xFF)
+                {
                     consistencyCheck = false;
+                }
+
                 if (map[0xB98] != 0x0)
+                {
                     consistencyCheck = false;
+                }
+
                 if (map[0xBA3] != 0x0)
+                {
                     consistencyCheck = false;
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 consistencyCheck = false;
             }
@@ -195,7 +202,7 @@ namespace NeonStream.GameData
 
         private static bool FillChar(Character character, ref CharacterRecord characterRecord, byte[] map)
         {
-            var offset = GetCharacterOffset(character);
+            short offset = GetCharacterOffset(character);
 
             if (offset == -1)
             {
@@ -205,7 +212,7 @@ namespace NeonStream.GameData
 
             characterRecord.Character = character;
 
-            var characterNameBytes = new byte[12];
+            byte[] characterNameBytes = new byte[12];
             Array.Copy(map, offset + SaveMapCharacterOffsets.Name, characterNameBytes, 0, 12);
             characterRecord.Name = characterNameBytes.ToFFString();
 
@@ -248,7 +255,7 @@ namespace NeonStream.GameData
             characterRecord.Experience = BitConverter.ToInt32(map, offset + SaveMapCharacterOffsets.CurrentExp);
             characterRecord.WeaponMateria = new int[8];
 
-            for (var materiaSlot = 0; materiaSlot <= 7; materiaSlot++)
+            for (int materiaSlot = 0; materiaSlot <= 7; materiaSlot++)
             {
                 characterRecord.WeaponMateria[materiaSlot] =
                     map[offset + SaveMapCharacterOffsets.WeaponMateria1 + (4 * materiaSlot)];
@@ -256,7 +263,7 @@ namespace NeonStream.GameData
 
             characterRecord.ArmorMateria = new int[8];
 
-            for (var materiaSlot = 0; materiaSlot <= 7; materiaSlot++)
+            for (int materiaSlot = 0; materiaSlot <= 7; materiaSlot++)
             {
                 characterRecord.ArmorMateria[materiaSlot] =
                     map[offset + SaveMapCharacterOffsets.ArmorMateria1 + (4 * materiaSlot)];
@@ -268,46 +275,21 @@ namespace NeonStream.GameData
 
         private static short GetCharacterOffset(Character character)
         {
-            switch (character)
+            return character switch
             {
-                case Character.Cloud:
-                    return SaveMapOffsets.CloudRecord;
-
-                case Character.Barret:
-                    return SaveMapOffsets.BarretRecord;
-
-                case Character.Tifa:
-                    return SaveMapOffsets.TifaRecord;
-
-                case Character.Aeris:
-                    return SaveMapOffsets.AerisRecord;
-
-                case Character.RedXIII:
-                    return SaveMapOffsets.RedXIIIRecord;
-
-                case Character.Yuffie:
-                    return SaveMapOffsets.YuffieRecord;
-
-                case Character.CaitSith:
-                    return SaveMapOffsets.CaitSithRecord;
-
-                case Character.Vincent:
-                    return SaveMapOffsets.VincentRecord;
-
-                case Character.Cid:
-                    return SaveMapOffsets.CidRecord;
-
-                case Character.YoungCloud:
-                    return SaveMapOffsets.YoungCloudRecord;
-
-                case Character.Sephiroth:
-                    return SaveMapOffsets.SephirothRecord;
-
-                case Character.Chocobo:
-                case Character.None:
-                default:
-                    return -1;
-            }
+                Character.Cloud => SaveMapOffsets.CloudRecord,
+                Character.Barret => SaveMapOffsets.BarretRecord,
+                Character.Tifa => SaveMapOffsets.TifaRecord,
+                Character.Aeris => SaveMapOffsets.AerisRecord,
+                Character.RedXIII => SaveMapOffsets.RedXIIIRecord,
+                Character.Yuffie => SaveMapOffsets.YuffieRecord,
+                Character.CaitSith => SaveMapOffsets.CaitSithRecord,
+                Character.Vincent => SaveMapOffsets.VincentRecord,
+                Character.Cid => SaveMapOffsets.CidRecord,
+                Character.YoungCloud => SaveMapOffsets.YoungCloudRecord,
+                Character.Sephiroth => SaveMapOffsets.SephirothRecord,
+                _ => -1,
+            };
         }
 
         #endregion Private Methods

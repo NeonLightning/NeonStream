@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NeonStream": {
+      "commandName": "Project",
+      "hotReloadEnabled": false
+    }
+  }
+}
