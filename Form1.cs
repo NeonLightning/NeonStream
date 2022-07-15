@@ -129,9 +129,32 @@ namespace NeonStream
                 _ => "",
             };
         }
+        private static void LocateGameProcess()
+        {
+            var firstRun = true;
+            while (FF7 is null)
+            {
+                if (!firstRun)
+                {
+                    MessageBox.Show("Could not locate FF7. Is the game running?");
+                    if (!string.IsNullOrWhiteSpace(ProcessName))
+                    {
+                        FF7 = Process.GetProcessesByName(ProcessName).FirstOrDefault();
+                    }
+
+                    if (FF7 is null)
+                    {
+                        SearchForProcess(ProcessName);
+                    }
+                }
+
+                if (FF7 is null) FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
+                if (FF7 is null) FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
+                firstRun = false;
+            }
+        }
         private static void SearchForProcess(string processName)
         {
-            Console.WriteLine("Searching...");
             if (Timer is null)
             {
                 Timer = new Timer(300);
@@ -166,51 +189,10 @@ namespace NeonStream
                 }
 
                 MemoryReader = new NativeMemoryReader(FF7);
-                Console.WriteLine("Found FF7");
                 if (null != Timer)
                 {
                     Timer.Enabled = true;
                 }
-            }
-        }
-
-
-        public Form1()
-        {
-            InitializeComponent();
-            PortableSettingsProvider.ApplyProvider(Properties.Settings.Default);
-            if (FF7 is null)
-            {
-                FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
-            }
-
-            if (FF7 is null)
-            {
-                FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
-            }
-
-            StartMonitoringGame();
-            int mainloop = 1;
-            while (mainloop == 1)
-            {
-                GameStatus game = ExtractStatusFromMap(SaveMap, BattleMap);
-                NameOutputlabel1.Text = game.Party[0].Name;
-            }
-
-            FF7?.Dispose();
-
-
-        }
-        private static void StartMonitoringGame()
-        {
-            if (Timer is null)
-            {
-                Timer = new Timer(500);
-                Timer.Elapsed += Timer_Elapsed;
-                Timer.AutoReset = true;
-
-                Timer_Elapsed(null, null);
-                Timer.Start();
             }
         }
         private static void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -236,6 +218,48 @@ namespace NeonStream
                 SearchForProcess(ProcessName);
             }
         }
+        private static void StartMonitoringGame()
+        {
+            if (Timer is null)
+            {
+                Timer = new Timer(500);
+                Timer.Elapsed += Timer_Elapsed;
+                Timer.AutoReset = true;
+
+                Timer_Elapsed(null, null);
+                Timer.Start();
+            }
+        }
+
+        public Form1()
+        {
+             LocateGameProcess();
+            InitializeComponent();
+            PortableSettingsProvider.ApplyProvider(Properties.Settings.Default);
+            if (FF7 is null)
+            {
+                FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
+            }
+
+            if (FF7 is null)
+            {
+                FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
+            }
+
+            StartMonitoringGame();
+            int mainloop = 1;
+            while (mainloop == 1)
+            {
+                GameStatus game = ExtractStatusFromMap(SaveMap, BattleMap);
+                NameOutputlabel1.Text = game.Party[0].Name;
+            }
+
+            FF7?.Dispose();
+
+
+        }
+
+
 
     }
 }
