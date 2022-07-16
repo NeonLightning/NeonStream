@@ -233,20 +233,11 @@ namespace NeonStream
 
         public Form1()
         {
-             LocateGameProcess();
-            InitializeComponent();
             PortableSettingsProvider.ApplyProvider(Properties.Settings.Default);
-            if (FF7 is null)
-            {
-                FF7 = Process.GetProcessesByName("ff7_en").FirstOrDefault();
-            }
-
-            if (FF7 is null)
-            {
-                FF7 = Process.GetProcessesByName("ff7").FirstOrDefault();
-            }
-
+            LocateGameProcess();
+            InitializeComponent();
             StartMonitoringGame();
+
             int mainloop = 1;
             while (mainloop == 1)
             {
